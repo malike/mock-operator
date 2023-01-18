@@ -1,0 +1,6 @@
+apiVersion: app.malike.kendeh.com/v1alpha1
+kind: SampleKind
+metadata:
+  name: samplekind-sample
+spec:
+  # TODO(user): Add fields here
