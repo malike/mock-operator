@@ -1,0 +1,94 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.2
+  creationTimestamp: null
+  name: samplekind.app.malike.kendeh.com
+spec:
+  group: app.malike.kendeh.com
+  names:
+    kind: SampleKind
+    listKind: SampleKindList
+    plural: samplekind
+    shortNames:
+    - smk
+    singular: samplekind
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: SampleKind is the Schema for the samplekind API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: SampleKindSpec defines the desired state of SampleKind
+            properties:
+              containerPort:
+                default: 80
+                description: ContainerPort defines port for container
+                format: int32
+                type: number
+              image:
+                description: Image defines image configuration
+                properties:
+                  pullPolicy:
+                    default: IfNotPresent
+                    description: Specifies ImagePullPolicy of the container image.
+                    type: string
+                  pullSecretName:
+                    description: ImagePullSecrets is an optional list of references
+                      to secrets in the same namespace to use for pulling any of the
+                      images used by this PodSpec.
+                    items:
+                      description: LocalObjectReference contains enough information
+                        to let you locate the referenced object inside the same namespace.
+                      properties:
+                        name:
+                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                            TODO: Add other useful fields. apiVersion, kind, uid?'
+                          type: string
+                      type: object
+                      x-kubernetes-map-type: atomic
+                    type: array
+                  repository:
+                    default: ghcr.io/malike/sample-mock-service
+                    description: Defines the container image repo for the service
+                    type: string
+                  tag:
+                    default: latest
+                    description: Specifies the tag of the container image to be used.
+                    type: string
+                type: object
+              nodes:
+                default: 2
+                description: Nodes defines number of instance
+                format: int32
+                type: number
+              servicePort:
+                default: 80
+                description: ServicePort defines port for service
+                format: int32
+                type: number
+            type: object
+          status:
+            description: SampleKindStatus defines the observed state of SampleKind
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

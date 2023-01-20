@@ -17,19 +17,48 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"encoding/json"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // SampleKindSpec defines the desired state of SampleKind
 type SampleKindSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	//+kubebuilder:validation:Type:=object
+	// Image defines image configuration
+	Image ImageSpec `json:"image,omitempty"`
+	//+kubebuilder:validation:Type:=number
+	//+kubebuilder:default:=2
+	// Nodes defines number of instance
+	Nodes int32 `json:"nodes,omitempty"`
+	//+kubebuilder:validation:Type:=number
+	//+kubebuilder:default:=80
+	// ContainerPort defines port for container
+	ContainerPort int32 `json:"containerPort,omitempty"`
+	//+kubebuilder:validation:Type:=number
+	//+kubebuilder:default:=80
+	// ServicePort defines port for service
+	ServicePort int32 `json:"servicePort,omitempty"`
+}
 
-	// Foo is an example field of SampleKind. Edit samplekind_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+// ImageSpec defines Image details
+type ImageSpec struct {
+	//+kubebuilder:validation:Type:=string
+	//+kubebuilder:default:=ghcr.io/malike/sample-mock-service
+	// Defines the container image repo for the service
+	Repository string `json:"repository,omitempty"`
+	//+kubebuilder:validation:Type:=string
+	//+kubebuilder:default:=latest
+	// Specifies the tag of the container image to be used.
+	Tag string `json:"tag,omitempty"`
+	//+kubebuilder:validation:Type:=string
+	//+kubebuilder:default:=IfNotPresent
+	// Specifies ImagePullPolicy of the container image.
+	ImagePullPolicy corev1.PullPolicy `json:"pullPolicy,omitempty"`
+	// ImagePullSecrets is an optional list of references to secrets in the same namespace to use for pulling any of the images used by this PodSpec.
+	// +optional
+	//+kubebuilder:validation:Type:=array
+	ImagePullSecrets []corev1.LocalObjectReference `json:"pullSecretName,omitempty"`
 }
 
 // SampleKindStatus defines the observed state of SampleKind
@@ -40,14 +69,20 @@ type SampleKindStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:resource:path=samplekind,shortName=smk
 
-// SampleKind is the Schema for the samplekinds API
+// SampleKind is the Schema for the samplekind API
 type SampleKind struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec   SampleKindSpec   `json:"spec,omitempty"`
 	Status SampleKindStatus `json:"status,omitempty"`
+}
+
+func (spec SampleKindSpec) String() string {
+	specString, _ := json.Marshal(spec)
+	return string(specString)
 }
 
 //+kubebuilder:object:root=true

@@ -1,0 +1,14 @@
+apiVersion: app.malike.kendeh.com/v1alpha1
+kind: SampleKind
+metadata:
+  name: lewis-sample
+spec:
+  image:
+    repository: ghcr.io/malike/sample-mock-service
+    tag: latest
+    pullPolicy: Never
+    pullSecretName:
+    - name: regcred
+  nodes: 1
+  containerPort: 80
+  servicePort: 80

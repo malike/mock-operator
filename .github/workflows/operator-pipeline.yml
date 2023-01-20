@@ -1,0 +1,42 @@
+name: Build and Test
+
+on:
+  push:
+
+jobs:
+  build:
+    name: Build & push image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Check out code
+        uses: actions/checkout@v1
+
+      - name: Lint and Build
+        run: |
+          go fmt ./... | wc -l | grep 0
+          make docker-build
+
+      - name: Login to Github Packages
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push sample image to GitHub Container Registry
+        run: |
+          cd sample-mock
+          make make-build
+
+      - name: Push operator image to GitHub Container Registry
+        run: make docker-push
+
+  test-sample-manifest:
+    needs: build
+    uses: ./.github/workflows/test-deployment-pipeline.yml
+    secrets: inherit

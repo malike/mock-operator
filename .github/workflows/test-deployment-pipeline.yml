@@ -1,0 +1,49 @@
+name: Build and Test for Operator
+
+on: workflow_call
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v1
+
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.3.0
+
+      - name: Login to Github Packages
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Operator deployment
+        run: |
+          kubectl cluster-info
+          kubectl get pods -n kube-system
+          echo "current-context:" $(kubectl config current-context)
+          echo "environment-kubeconfig:" ${KUBECONFIG}
+          kubectl create ns mock-operator-system --save-config
+          kubectl create secret generic regcred --from-file=.dockerconfigjson=${HOME}/.docker/config.json --type=kubernetes.io/dockerconfigjson -n mock-operator-system
+          make deploy | grep created
+          kubectl rollout status deployment mock-operator-controller-manager -n mock-operator-system --timeout=30s
+          kubectl get crd | grep samplekind
+
+      - name: Create deployment
+        run: |
+          kubectl create secret generic regcred --from-file=.dockerconfigjson=${HOME}/.docker/config.json --type=kubernetes.io/dockerconfigjson -n default
+          kubectl apply -f ci/sample.yaml | grep "lewis-sample"
+          sleep 5 ; kubectl get all
+          kubectl wait pods --selector app.kubernetes.io/instance=lewis-sample --for condition=Ready --timeout=40s | grep "condition met"
+          kubectl get po --show-labels | grep lewis-sample | grep "1/1"
+          kubectl port-forward svc/lewis-sample-service 8080:80 &
+          sleep 5
+          curl localhost:8080 | grep mock
+
+
+      - name: Delete operator deployment
+        run: |
+          kubectl delete samplekind lewis-sample | grep deleted

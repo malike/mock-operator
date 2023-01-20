@@ -18,13 +18,17 @@ package controllers
 
 import (
 	"context"
+	appv1alpha1 "github.com/malike/mock-operator/api/v1alpha1"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	appv1alpha1 "github.com/malike/mock-operator/api/v1alpha1"
 )
 
 // SampleKindReconciler reconciles a SampleKind object
@@ -47,11 +51,77 @@ type SampleKindReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *SampleKindReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// Fetch the SampleKind instance
+	sampleApp := &appv1alpha1.SampleKind{}
+	err := r.Get(ctx, req.NamespacedName, sampleApp)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// Request object not found, could have been deleted after reconcile request.
+			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+			// Return and don't requeue
+			log.Info("SampleKind resource not found. Ignoring since object must be deleted")
+			return ctrl.Result{}, nil
+		}
+		// Error reading the object
+		return ctrl.Result{}, err
+	} else {
+		log.V(1).Info("Detected existing SampleKind", " sampleApp.Name", sampleApp.Name)
+	}
 
-	return ctrl.Result{}, nil
+	// Check if the Deployment already exists, if not create a new one
+	deployment := &appsv1.Deployment{}
+	deploymentName := sampleApp.Name
+	err = r.Get(ctx, types.NamespacedName{Name: deploymentName, Namespace: sampleApp.Namespace}, deployment)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new configmap
+		deployment := r.newSampleAppDeployment(deploymentName, sampleApp)
+		log.Info("Creating a new SampleApp", "SampleKind.Namespace", sampleApp.Namespace, "SampleKind.Name", sampleApp.Name)
+		err = r.Create(ctx, deployment)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{Requeue: true}, nil
+	} else if err != nil {
+		return ctrl.Result{}, err
+	} else {
+		//check if hash is outdated
+		oldHashLabel := getHashLabel(deployment.Labels)
+		if oldHashLabel != generateHash(sampleApp.Spec) {
+			//outdated update deployment
+			deployment := r.updateSampleAppDeployment(*deployment, sampleApp)
+			err := r.Update(ctx, &deployment)
+			if err != nil {
+				//log erro
+			}
+		}
+		log.V(1).Info("Detected existing SampleApp", " deployment.Name", sampleApp.Name)
+	}
+
+	service := &corev1.Service{}
+	serviceName := getServiceName(deploymentName)
+	err = r.Get(ctx, types.NamespacedName{Name: serviceName, Namespace: sampleApp.Namespace}, service)
+	if err != nil && errors.IsNotFound(err) {
+		// New service
+		service = r.newSampleAppService(deploymentName, sampleApp)
+		log.Info("Creating a new Service for SampleApp ", "Service.Namespace", service.Namespace, "Service.Name", service.Name)
+
+		err = r.Create(ctx, service)
+		if err != nil {
+			//log failed to create
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{Requeue: true}, nil
+	} else if err != nil {
+		//log failed to create
+		return ctrl.Result{}, err
+	} else {
+		log.V(1).Info("Detected existing Service", " Service.Name", service.Name)
+	}
+
+	// When finished still reconcile periodically
+	return ctrl.Result{RequeueAfter: 10 * time.Minute}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
