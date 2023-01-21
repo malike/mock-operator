@@ -37,9 +37,9 @@ type SampleKindReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=app.malike.kendeh.com,resources=samplekinds,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=app.malike.kendeh.com,resources=samplekinds/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=app.malike.kendeh.com,resources=samplekinds/finalizers,verbs=update
+//+kubebuilder:rbac:groups=app.malike.kendeh.com,resources=samplekind,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=app.malike.kendeh.com,resources=samplekind/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=app.malike.kendeh.com,resources=samplekind/finalizers,verbs=update
 
 //+kubebuilder:rbac:groups="apps",resources=deployments,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;create;update;delete;patch
