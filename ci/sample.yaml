@@ -6,7 +6,7 @@ spec:
   image:
     repository: ghcr.io/malike/mock-operator/sample-mock-service
     tag: latest
-    pullPolicy: Never
+    pullPolicy: Always
     pullSecretName:
     - name: regcred
   nodes: 1
