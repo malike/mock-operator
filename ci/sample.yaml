@@ -9,6 +9,6 @@ spec:
     pullPolicy: Always
     pullSecretName:
     - name: regcred
-  nodes: 1
+  nodes: 2
   containerPort: 80
   servicePort: 80
