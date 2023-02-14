@@ -24,3 +24,7 @@ testbin/*
 *.swp
 *.swo
 *~
+
+.idea
+.DS_Store
+*.iml
