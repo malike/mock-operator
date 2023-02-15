@@ -16,10 +16,22 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v1
 
-      - name: Lint and Build
+      - name: Test
         run: |
           go fmt ./... | wc -l | grep 0
+          make test
+
+      - name: Lint and Build
+        run: |
           make docker-build
+
+      - name: Upload Test coverage Reports
+          if: ${{ always() }}
+          uses: actions/upload-artifact@v2
+          with:
+            path: |
+              ./cover.out
+              ./cover.html
 
       - name: Login to Github Packages
         uses: docker/login-action@v2
