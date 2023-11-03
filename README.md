@@ -1,8 +1,11 @@
-# mock-operator
-// TODO(user): Add simple overview of use/purpose
+# Custom Kubernetes Operator: mock-operator
+
+Mock Operator is a mock operator built with Go to showcase how to to build and custom Kubernetes Operators. 
 
 ## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+
+Blog post and details on building the **mock-operator** can be found here [https://malike.kendeh.com/posts/Custom-Operator-With-Operator-SDK](https://malike.kendeh.com/posts/Custom-Operator-With-Operator-SDK)
+
 
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
